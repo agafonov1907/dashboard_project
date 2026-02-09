@@ -15,8 +15,13 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDateTime();
     setInterval(updateDateTime, 60000); // Каждую минуту
     
-    // Анимация появления карточек
-    animateCards();
+    // Автоматическое обновление при возврате на вкладку
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            loadProjects();
+            updateDateTime();
+        }
+    });
 });
 
 // Инициализация анимации снега
@@ -40,151 +45,10 @@ function initSnowflakes() {
     });
 }
 
-// Данные проектов (можно вынести в отдельный JSON файл)
+// Загрузка данных из localStorage (основной дашборд)
 function getProjectsData() {
     const data = localStorage.getItem('dashboard_projects');
-    return data ? JSON.parse(data) : [
-        {
-            id: 1,
-            title: "Чат-бот департамента",
-            description: "Автоматизация взаимодействия с гражданами через мессенджеры",
-            status: "active",
-            department: "bots",
-            timeline: [
-                {
-                    date: "09.02.2026",
-                    title: "Направлен проект ТЗ",
-                    description: "Подготовлено техническое задание для разработки чат-бота с интеграцией в мессенджеры"
-                },
-                {
-                    date: "05.02.2026",
-                    title: "Сбор требований",
-                    description: "Проведены встречи с отделами для определения функциональных требований"
-                },
-                {
-                    date: "01.02.2026",
-                    title: "Инициация проекта",
-                    description: "Утверждено создание чат-бота для автоматизации ответов на часто задаваемые вопросы"
-                }
-            ],
-            nextStep: "Согласование ТЗ с юридическим отделом до 15.02.2026"
-        },
-        {
-            id: 2,
-            title: "Внедрение национального мессенджера MAX",
-            description: "Интеграция государственного мессенджера в работу департамента",
-            status: "active",
-            department: "web",
-            timeline: [
-                {
-                    date: "08.02.2026",
-                    title: "Тестирование функционала",
-                    description: "Проведено тестирование основных функций мессенджера в рабочей группе"
-                },
-                {
-                    date: "03.02.2026",
-                    title: "Подключение к системе",
-                    description: "Настроено подключение к национальному мессенджеру для пилотной группы"
-                },
-                {
-                    date: "28.01.2026",
-                    title: "Подготовка инфраструктуры",
-                    description: "Подготовлена техническая документация для внедрения"
-                }
-            ],
-            nextStep: "Массовое внедрение для всех сотрудников до 20.02.2026"
-        },
-        {
-            id: 3,
-            title: "Цифровизация архивных услуг",
-            description: "Повышение доступности и безопасности государственных услуг в архивном секторе",
-            status: "planning",
-            department: "web",
-            timeline: [
-                {
-                    date: "07.02.2026",
-                    title: "Анализ текущего состояния",
-                    description: "Проведен анализ существующих процессов предоставления архивных услуг"
-                },
-                {
-                    date: "02.02.2026",
-                    title: "Формирование команды",
-                    description: "Сформирована рабочая группа для реализации проекта"
-                }
-            ],
-            nextStep: "Разработка концепции цифровизации до 18.02.2026"
-        },
-        {
-            id: 4,
-            title: "Ресурс по детской кибербезопасности",
-            description: "Создание образовательного портала для защиты детей в интернете",
-            status: "active",
-            department: "web",
-            timeline: [
-                {
-                    date: "06.02.2026",
-                    title: "Разработка контента",
-                    description: "Начата работа над образовательными материалами и интерактивными модулями"
-                },
-                {
-                    date: "30.01.2026",
-                    title: "Проектирование структуры",
-                    description: "Создана карта сайта и определена структура образовательного портала"
-                },
-                {
-                    date: "25.01.2026",
-                    title: "Исследование потребностей",
-                    description: "Проведен анализ существующих решений и потребностей целевой аудитории"
-                }
-            ],
-            nextStep: "Создание прототипа сайта до 14.02.2026"
-        },
-        {
-            id: 5,
-            title: "Интеграция платежей ЖКХ",
-            description: "Подключение системы оплаты коммунальных услуг в мобильное приложение",
-            status: "planning",
-            department: "mobile",
-            timeline: [
-                {
-                    date: "04.02.2026",
-                    title: "Переговоры с поставщиками",
-                    description: "Начаты переговоры с платежными системами для интеграции"
-                },
-                {
-                    date: "28.01.2026",
-                    title: "Технический анализ",
-                    description: "Проведен анализ технических требований для интеграции платежных систем"
-                }
-            ],
-            nextStep: "Заключение договоров с платежными системами до 25.02.2026"
-        },
-        {
-            id: 6,
-            title: "Сервис геокодирования",
-            description: "Интеграция API Яндекс для геолокационных сервисов",
-            status: "completed",
-            department: "web",
-            timeline: [
-                {
-                    date: "01.02.2026",
-                    title: "Завершение интеграции",
-                    description: "Успешно завершена интеграция геокодирования в основные сервисы"
-                },
-                {
-                    date: "20.01.2026",
-                    title: "Тестирование API",
-                    description: "Проведено полное тестирование интеграции с Яндекс API"
-                },
-                {
-                    date: "10.01.2026",
-                    title: "Подключение сервиса",
-                    description: "Начата интеграция геокодирования в веб-приложения"
-                }
-            ],
-            nextStep: "Сервис успешно запущен и работает в штатном режиме"
-        }
-    ];
+    return data ? JSON.parse(data) : []; // Возвращаем пустой массив вместо демо-данных
 }
 
 // Загрузка проектов в DOM
@@ -193,6 +57,22 @@ function loadProjects(projects = null) {
     const projectsData = projects || getProjectsData();
     
     container.innerHTML = '';
+    
+    if (projectsData.length === 0) {
+        // Показываем сообщение, что проектов нет
+        container.innerHTML = `
+            <div class="no-projects-message">
+                <div style="text-align: center; padding: 60px; color: var(--gray);">
+                    <i class="fas fa-folder-open" style="font-size: 48px; margin-bottom: 20px; opacity: 0.7;"></i>
+                    <h3>Нет проектов</h3>
+                    <p style="margin-top: 10px; font-size: 16px;">Перейдите в <a href="admin.html" style="color: var(--primary-light); text-decoration: underline;">админку</a> для добавления проектов</p>
+                </div>
+            </div>
+        `;
+        // Обновляем статистику
+        updateStats(0, 0, 0, 0);
+        return;
+    }
     
     projectsData.forEach(project => {
         const card = document.createElement('div');
@@ -225,6 +105,17 @@ function loadProjects(projects = null) {
         `;
         container.appendChild(card);
     });
+    
+    // Обновляем статистику
+    updateStats(
+        projectsData.length,
+        projectsData.filter(p => p.status === 'active').length,
+        projectsData.filter(p => p.status === 'planning').length,
+        projectsData.filter(p => p.status === 'completed').length
+    );
+    
+    // Анимация появления карточек
+    animateCards();
 }
 
 // Получение текста статуса
@@ -270,7 +161,8 @@ function applyFilters() {
     const deptFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : 
                        document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
                        document.querySelector('.filter-btn[data-filter="web"]')?.classList.contains('active') ? 'web' :
-                       document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' : 'all';
+                       document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' :
+                       document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' : 'all';
     
     const allProjects = getProjectsData();
     let filtered = allProjects;
@@ -284,28 +176,29 @@ function applyFilters() {
     }
     
     loadProjects(filtered);
-    
-    // Обновляем статистику
-    updateStats(filtered.length, 
-                filtered.filter(p => p.status === 'active').length,
-                filtered.filter(p => p.status === 'planning').length,
-                filtered.filter(p => p.status === 'completed').length);
 }
 
 // Обновление статистики
 function updateStats(total, active, planning, completed) {
-    document.querySelector('.stats-bar .stat-info p:nth-child(2)').textContent = total;
-    document.querySelectorAll('.stats-bar .stat-info p')[1].textContent = active;
-    document.querySelectorAll('.stats-bar .stat-info p')[2].textContent = planning;
-    document.querySelectorAll('.stats-bar .stat-info p')[3].textContent = completed;
+    const statCards = document.querySelectorAll('.stat-card .stat-info p');
+    if (statCards.length >= 4) {
+        statCards[0].textContent = total;
+        statCards[1].textContent = active;
+        statCards[2].textContent = planning;
+        statCards[3].textContent = completed;
+    }
 }
 
 // Настройка кнопки добавления проекта
 function setupAddProject() {
     const btn = document.getElementById('add-project-btn');
-    btn.addEventListener('click', function() {
-        showNotification('Функция добавления проектов будет реализована в следующей версии дашборда', 'warning');
-    });
+    if (btn) {
+        btn.addEventListener('click', function() {
+            showNotification('Перейдите в админку для добавления проектов', 'warning');
+            // Можно также перенаправлять в админку:
+            // window.location.href = 'admin.html';
+        });
+    }
 }
 
 // Обновление даты и времени
@@ -324,8 +217,11 @@ function updateDateTime() {
     const formattedDate = now.toLocaleDateString('ru-RU', dateOptions).replace(/\./g, '.');
     const formattedTime = now.toLocaleTimeString('ru-RU', timeOptions);
     
-    document.getElementById('current-date').textContent = formattedDate;
-    document.getElementById('last-update').textContent = `Последнее обновление: ${formattedTime}`;
+    const dateElement = document.getElementById('current-date');
+    const timeElement = document.getElementById('last-update');
+    
+    if (dateElement) dateElement.textContent = formattedDate;
+    if (timeElement) timeElement.textContent = `Последнее обновление: ${formattedTime}`;
 }
 
 // Анимация появления карточек
@@ -351,7 +247,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
         ${message}
     `;
     

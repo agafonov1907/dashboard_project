@@ -68,10 +68,10 @@ function getStatusIcon(status) {
 // Получение текста отдела
 function getDepartmentText(dept) {
     const texts = {
-        'bots': 'Боты',
-        'web': 'Веб',
-        'mobile': 'Мобильные',
-        'other': 'Другое'
+        'other': 'Другое',
+        'bots': 'Сервисы MAX: Боты',
+        'yandex': 'Сервисы Яндекс',
+        'rgis': 'РГИС ЖКХ'
     };
     return texts[dept] || dept;
 }
