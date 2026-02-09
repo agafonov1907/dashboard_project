@@ -17,7 +17,7 @@ function saveProjects(projects) {
     showNotification('Данные успешно сохранены!', 'success');
 }
 
-// Отображение списка проектов
+// Отображение списка проектов с явной кнопкой редактирования
 function renderProjectsList() {
     const container = document.getElementById('projects-list');
     const projects = loadProjects();
@@ -28,28 +28,59 @@ function renderProjectsList() {
     }
     
     container.innerHTML = projects.map(project => `
-        <div class="project-card" data-id="${project.id}">
-            <h3>${project.title}</h3>
-            <div class="meta">
-                <span><i class="fas fa-${getStatusIcon(project.status)}"></i> ${getStatusText(project.status)}</span>
-                <span><i class="fas fa-building"></i> ${getDepartmentText(project.department)}</span>
+        <div class="project-card">
+            <div class="project-card-content" data-id="${project.id}">
+                <h3>${project.title}</h3>
+                <div class="meta">
+                    <span><i class="fas fa-${getStatusIcon(project.status)}"></i> ${getStatusText(project.status)}</span>
+                    <span><i class="fas fa-building"></i> ${getDepartmentText(project.department)}</span>
+                </div>
+                <div class="description">${project.description || ''}</div>
+                <div class="next-step"><strong>Следующий шаг:</strong> ${project.nextStep}</div>
+                <div class="timeline-preview">
+                    <strong>Этапы (${project.timeline?.length || 0}):</strong>
+                    ${project.timeline?.slice(0, 2).map(item => 
+                        `<div class="timeline-item-preview">${item.date} - ${item.title}</div>`
+                    ).join('') || '<em>Нет этапов</em>'}
+                    ${project.timeline?.length > 2 ? `<div class="timeline-more">+${project.timeline.length - 2} еще</div>` : ''}
+                </div>
             </div>
-            <div class="description">${project.description || ''}</div>
-            <div class="next-step"><strong>Следующий шаг:</strong> ${project.nextStep}</div>
-            <div class="timeline-preview">
-                <strong>Этапы (${project.timeline?.length || 0}):</strong>
-                ${project.timeline?.slice(0, 2).map(item => 
-                    `<div class="timeline-item-preview">${item.date} - ${item.title}</div>`
-                ).join('') || '<em>Нет этапов</em>'}
-                ${project.timeline?.length > 2 ? `<div class="timeline-more">+${project.timeline.length - 2} еще</div>` : ''}
+            <div class="project-card-actions">
+                <button class="btn outline small edit-btn" data-id="${project.id}">
+                    <i class="fas fa-edit"></i> Редактировать
+                </button>
+                <button class="btn danger small delete-btn" data-id="${project.id}">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
             </div>
         </div>
     `).join('');
     
-    // Добавляем обработчики кликов на карточки
-    document.querySelectorAll('.project-card').forEach(card => {
+    // Добавляем обработчики для кнопок редактирования
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const projectId = parseInt(button.dataset.id);
+            editProject(projectId);
+        });
+    });
+    
+    // Добавляем обработчики для кнопок удаления
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const projectId = parseInt(button.dataset.id);
+            if (confirm('Вы уверены, что хотите удалить этот проект?')) {
+                deleteProject(projectId);
+            }
+        });
+    });
+    
+    // Также сохраняем возможность клика по всей карточке
+    document.querySelectorAll('.project-card-content').forEach(card => {
         card.addEventListener('click', () => {
-            editProject(parseInt(card.dataset.id));
+            const projectId = parseInt(card.dataset.id);
+            editProject(projectId);
         });
     });
 }
@@ -348,6 +379,15 @@ function initSnowflakes() {
         flake.style.setProperty('--x-offset', `${xOffset}px`);
         flake.style.opacity = `${Math.random() * 0.7 + 0.3}`;
     });
+}
+
+// Функция редактирования проекта (вызывается из обработчиков)
+function editProject(projectId) {
+    const projects = loadProjects();
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+        openModal(project);
+    }
 }
 
 // Инициализация

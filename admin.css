@@ -498,3 +498,32 @@ header p {
 .notification.error {
     border-left-color: var(--danger);
 }
+/* Кнопки действий на карточках проектов */
+.project-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.project-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.project-card-content {
+    cursor: pointer;
+}
+
+/* Адаптивность для кнопок действий */
+@media (max-width: 768px) {
+    .project-card-actions {
+        flex-direction: column;
+    }
+    
+    .btn.small {
+        width: 100%;
+        justify-content: center;
+    }
+}
