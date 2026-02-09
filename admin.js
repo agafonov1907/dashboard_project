@@ -10,6 +10,10 @@ function loadProjects() {
 // Сохранение данных в localStorage
 function saveProjects(projects) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    // Сбрасываем флаг очистки, если есть данные
+    if (projects.length > 0) {
+        localStorage.removeItem('dashboard_cleared');
+    }
     showNotification('Данные успешно сохранены!', 'success');
 }
 
@@ -32,6 +36,13 @@ function renderProjectsList() {
             </div>
             <div class="description">${project.description || ''}</div>
             <div class="next-step"><strong>Следующий шаг:</strong> ${project.nextStep}</div>
+            <div class="timeline-preview">
+                <strong>Этапы (${project.timeline?.length || 0}):</strong>
+                ${project.timeline?.slice(0, 2).map(item => 
+                    `<div class="timeline-item-preview">${item.date} - ${item.title}</div>`
+                ).join('') || '<em>Нет этапов</em>'}
+                ${project.timeline?.length > 2 ? `<div class="timeline-more">+${project.timeline.length - 2} еще</div>` : ''}
+            </div>
         </div>
     `).join('');
     
@@ -68,11 +79,13 @@ function getStatusIcon(status) {
 // Получение текста отдела
 function getDepartmentText(dept) {
     const texts = {
-        'other': 'Другое',
-        'bots': 'Сервисы MAX: Боты',
-        'yandex': 'Сервисы Яндекс',
-        'rgis': 'РГИС ЖКХ',
-        'tor_school': 'ТОР "Моя школа"'
+        'bots': 'Боты',
+        'web': 'Веб',
+        'mobile': 'Мобильные',
+        'archive': 'Архив',
+        'education': 'Образование',
+        'infrastructure': 'Инфраструктура',
+        'other': 'Другое'
     };
     return texts[dept] || dept;
 }
@@ -128,11 +141,11 @@ function addTimelineItem(item = null) {
         <div class="timeline-item" data-id="${timelineId}">
             <button type="button" class="remove-timeline">×</button>
             <div class="form-group">
-                <label>Дата</label>
+                <label>Дата *</label>
                 <input type="text" placeholder="09.02.2026" value="${item?.date || ''}" required>
             </div>
             <div class="form-group">
-                <label>Название этапа</label>
+                <label>Название этапа *</label>
                 <input type="text" placeholder="Название этапа" value="${item?.title || ''}" required>
             </div>
             <div class="form-group">
@@ -151,10 +164,50 @@ function addTimelineItem(item = null) {
     });
 }
 
+// Валидация формы
+function validateForm() {
+    const title = document.getElementById('project-title').value.trim();
+    const nextStep = document.getElementById('project-next-step').value.trim();
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    
+    if (!title) {
+        showNotification('Поле "Название проекта" обязательно для заполнения', 'error');
+        return false;
+    }
+    
+    if (!nextStep) {
+        showNotification('Поле "Следующий шаг / Результат" обязательно для заполнения', 'error');
+        return false;
+    }
+    
+    // Проверяем хотя бы один этап
+    let hasValidTimeline = false;
+    for (let item of timelineItems) {
+        const date = item.querySelector('input[type="text"]:nth-of-type(1)').value.trim();
+        const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)').value.trim();
+        if (date && titleInput) {
+            hasValidTimeline = true;
+            break;
+        }
+    }
+    
+    if (!hasValidTimeline) {
+        showNotification('Добавьте хотя бы один этап проекта', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
 // Сохранение проекта
-function saveProject(formData) {
+function saveProject() {
+    if (!validateForm()) {
+        return;
+    }
+    
     const projects = loadProjects();
-    const projectId = formData.id ? parseInt(formData.id) : Date.now();
+    const projectId = document.getElementById('project-id').value ? 
+        parseInt(document.getElementById('project-id').value) : Date.now();
     
     // Сбор данных этапов
     const timelineItems = [];
@@ -163,9 +216,9 @@ function saveProject(formData) {
         const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
         const descriptionTextarea = item.querySelector('textarea');
         
-        const date = dateInput?.value || '';
-        const title = titleInput?.value || '';
-        const description = descriptionTextarea?.value || '';
+        const date = dateInput?.value.trim() || '';
+        const title = titleInput?.value.trim() || '';
+        const description = descriptionTextarea?.value.trim() || '';
         
         if (date && title) {
             timelineItems.push({ date, title, description });
@@ -174,17 +227,17 @@ function saveProject(formData) {
     
     const project = {
         id: projectId,
-        title: formData.title,
-        description: formData.description,
-        status: formData.status,
-        department: formData.department,
-        nextStep: formData.nextStep,
+        title: document.getElementById('project-title').value.trim(),
+        description: document.getElementById('project-description').value.trim(),
+        status: document.getElementById('project-status').value,
+        department: document.getElementById('project-department').value,
+        nextStep: document.getElementById('project-next-step').value.trim(),
         timeline: timelineItems
     };
     
-    if (formData.id) {
+    if (document.getElementById('project-id').value) {
         // Обновление существующего проекта
-        const index = projects.findIndex(p => p.id === parseInt(formData.id));
+        const index = projects.findIndex(p => p.id === parseInt(document.getElementById('project-id').value));
         if (index !== -1) {
             projects[index] = project;
         }
@@ -214,6 +267,7 @@ function clearAllData() {
     if (!confirm('Вы уверены, что хотите удалить ВСЕ проекты? Это действие нельзя отменить.')) return;
     
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem('dashboard_cleared', 'true');
     renderProjectsList();
     showNotification('Все данные удалены', 'success');
 }
@@ -265,7 +319,7 @@ function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
         ${message}
     `;
     container.appendChild(notification);
@@ -323,17 +377,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('add-timeline-item').addEventListener('click', addTimelineItem);
     
+    // Обработка отправки формы
     document.getElementById('project-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        const formData = {
-            id: document.getElementById('project-id').value,
-            title: document.getElementById('project-title').value,
-            description: document.getElementById('project-description').value,
-            status: document.getElementById('project-status').value,
-            department: document.getElementById('project-department').value,
-            nextStep: document.getElementById('project-next-step').value
-        };
-        saveProject(formData);
+        saveProject();
     });
     
     // Загрузка начальных данных

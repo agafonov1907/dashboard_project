@@ -456,3 +456,45 @@ header p {
         max-width: 300px;
     }
 }
+/* Предпросмотр этапов в списке проектов */
+.timeline-preview {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.timeline-item-preview {
+    margin: 5px 0;
+    color: var(--gray);
+    display: flex;
+    gap: 10px;
+}
+
+.timeline-item-preview::before {
+    content: "•";
+    color: var(--primary-light);
+    font-weight: bold;
+}
+
+.timeline-more {
+    color: var(--gray);
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* Улучшенная форма */
+.form-group input[required],
+.form-group textarea[required] {
+    border-left: 3px solid var(--primary-light);
+}
+
+.form-group input:focus[required],
+.form-group textarea:focus[required] {
+    border-left-color: var(--secondary);
+}
+
+/* Сообщения об ошибках */
+.notification.error {
+    border-left-color: var(--danger);
+}

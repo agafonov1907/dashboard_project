@@ -72,64 +72,69 @@
                     <span class="close">&times;</span>
                 </div>
                 <div class="modal-body">
-                    <form id="project-form">
-                        <input type="hidden" id="project-id">
-                        
-                        <div class="form-group">
-                            <label for="project-title">Название проекта *</label>
-                            <input type="text" id="project-title" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="project-description">Описание</label>
-                            <textarea id="project-description" rows="3"></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="project-status">Статус *</label>
-                                <select id="project-status" required>
-                                    <option value="active">В работе</option>
-                                    <option value="planning">Планируется</option>
-                                    <option value="completed">Завершено</option>
-                                    <option value="paused">Приостановлен</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="project-department">Отдел *</label>
-                                <select id="project-department" required>
-                    <option value="other">Другое</option>
-                    <option value="bots">Сервисы MAX: Боты</option>
-                    <option value="yandex">Сервисы Яндекс</option>
-                    <option value="rgis">РГИС ЖКХ</option>
-                    <option value="tor_school">ТОР "Моя школа"</option>
-                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="project-next-step">Следующий шаг / Результат *</label>
-                            <textarea id="project-next-step" rows="2" required></textarea>
-                        </div>
-                        
-                        <div class="timeline-section">
-                            <h3>Этапы проекта</h3>
-                            <div id="timeline-items">
-                                <!-- Этапы будут добавляться здесь -->
-                            </div>
-                            <button type="button" id="add-timeline-item" class="btn outline small">
-                                <i class="fas fa-plus"></i> Добавить этап
-                            </button>
-                        </div>
-                        
-                        <div class="modal-footer">
-                            <button type="button" id="delete-project-btn" class="btn danger" style="display: none;">
-                                Удалить проект
-                            </button>
-                            <button type="submit" class="btn primary">Сохранить</button>
-                        </div>
-                    </form>
+                    <!-- Замените блок form на этот -->
+<form id="project-form">
+    <input type="hidden" id="project-id">
+    
+    <div class="form-group">
+        <label for="project-title">Название проекта *</label>
+        <input type="text" id="project-title" required placeholder="Введите название проекта">
+    </div>
+    
+    <div class="form-group">
+        <label for="project-description">Описание</label>
+        <textarea id="project-description" rows="3" placeholder="Описание проекта (необязательно)"></textarea>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="project-status">Статус *</label>
+            <select id="project-status" required>
+                <option value="active">В работе</option>
+                <option value="planning">Планируется</option>
+                <option value="completed">Завершено</option>
+                <option value="paused">Приостановлен</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="project-department">Отдел *</label>
+            <select id="project-department" required>
+                <!-- Эти опции будут генерироваться автоматически -->
+                <option value="bots">Боты</option>
+                <option value="web">Веб</option>
+                <option value="mobile">Мобильные</option>
+                <option value="archive">Архив</option>
+                <option value="education">Образование</option>
+                <option value="infrastructure">Инфраструктура</option>
+                <option value="other">Другое</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="project-next-step">Следующий шаг / Результат *</label>
+        <textarea id="project-next-step" rows="2" required placeholder="Что нужно сделать дальше или итоговый результат"></textarea>
+    </div>
+    
+    <div class="timeline-section">
+        <h3>Этапы проекта *</h3>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 15px;">Добавьте хотя бы один этап проекта</p>
+        <div id="timeline-items">
+            <!-- Этапы будут добавляться здесь -->
+        </div>
+        <button type="button" id="add-timeline-item" class="btn outline small">
+            <i class="fas fa-plus"></i> Добавить этап
+        </button>
+    </div>
+    
+    <div class="modal-footer">
+        <button type="button" id="delete-project-btn" class="btn danger" style="display: none;">
+            Удалить проект
+        </button>
+        <button type="submit" class="btn primary">Сохранить проект</button>
+    </div>
+</form>
                 </div>
             </div>
         </div>
