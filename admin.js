@@ -71,7 +71,8 @@ function getDepartmentText(dept) {
         'other': 'Другое',
         'bots': 'Сервисы MAX: Боты',
         'yandex': 'Сервисы Яндекс',
-        'rgis': 'РГИС ЖКХ'
+        'rgis': 'РГИС ЖКХ',
+        'tor_school': 'ТОР "Моя школа"'
     };
     return texts[dept] || dept;
 }

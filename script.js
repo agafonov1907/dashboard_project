@@ -158,11 +158,10 @@ function applyFilters() {
                          document.querySelector('.filter-btn[data-filter="planning"]')?.classList.contains('active') ? 'planning' :
                          document.querySelector('.filter-btn[data-filter="completed"]')?.classList.contains('active') ? 'completed' : 'all';
     
-    const deptFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : 
-                       document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
-                       document.querySelector('.filter-btn[data-filter="web"]')?.classList.contains('active') ? 'web' :
-                       document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' :
-                       document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' : 'all';
+    const deptFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
+                   document.querySelector('.filter-btn[data-filter="yandex"]')?.classList.contains('active') ? 'yandex' :
+                   document.querySelector('.filter-btn[data-filter="rgis"]')?.classList.contains('active') ? 'rgis' :
+                   document.querySelector('.filter-btn[data-filter="tor_school"]')?.classList.contains('active') ? 'tor_school' : 'all';
     
     const allProjects = getProjectsData();
     let filtered = allProjects;
