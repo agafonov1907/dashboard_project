@@ -7,59 +7,14 @@ function loadProjects() {
     return data ? JSON.parse(data) : [];
 }
 
-// Сохранение проекта
-function saveProject() {
-    if (!validateForm()) {
-        return;
+// Сохранение данных в localStorage
+function saveProjects(projects) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    // Сбрасываем флаг очистки, если есть данные
+    if (projects.length > 0) {
+        localStorage.removeItem('dashboard_cleared');
     }
-    
-    const projects = loadProjects();
-    const projectIdInput = document.getElementById('project-id').value;
-    const projectId = projectIdInput ? parseInt(projectIdInput) : Date.now();
-    
-    // Сбор данных этапов
-    const timelineItems = [];
-    document.querySelectorAll('.timeline-item').forEach(item => {
-        const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
-        const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
-        const descriptionTextarea = item.querySelector('textarea');
-        
-        const date = dateInput?.value.trim() || '';
-        const title = titleInput?.value.trim() || '';
-        const description = descriptionTextarea?.value.trim() || '';
-        
-        if (date && title) {
-            timelineItems.push({ date, title, description });
-        }
-    });
-    
-    const project = {
-        id: projectId,
-        title: document.getElementById('project-title').value.trim(),
-        description: document.getElementById('project-description').value.trim(),
-        status: document.getElementById('project-status').value,
-        department: document.getElementById('project-department').value,
-        nextStep: document.getElementById('project-next-step').value.trim(),
-        timeline: timelineItems
-    };
-    
-    if (projectIdInput) {
-        // Обновление существующего проекта
-        const index = projects.findIndex(p => p.id == projectId); // Используем == вместо ===
-        if (index !== -1) {
-            projects[index] = project;
-        } else {
-            // Если проект не найден, добавляем как новый
-            projects.push(project);
-        }
-    } else {
-        // Добавление нового проекта
-        projects.push(project);
-    }
-    
-    saveProjects(projects);
-    renderProjectsList();
-    closeModal();
+    showNotification('Данные успешно сохранены!', 'success');
 }
 
 // Отображение списка проектов с явной кнопкой редактирования
@@ -78,7 +33,7 @@ function renderProjectsList() {
                 <h3>${project.title}</h3>
                 <div class="meta">
                     <span><i class="fas fa-${getStatusIcon(project.status)}"></i> ${getStatusText(project.status)}</span>
-                    <span><i class="fas fa-building"></i> ${getDepartmentText(project.department)}</span>
+                    <span><i class="fas fa-building"></i> ${getProjectTypeText(project.projectType)}</span>
                 </div>
                 <div class="description">${project.description || ''}</div>
                 <div class="next-step"><strong>Следующий шаг:</strong> ${project.nextStep}</div>
@@ -152,8 +107,8 @@ function getStatusIcon(status) {
     return icons[status] || 'question-circle';
 }
 
-// Получение текста отдела
-function getDepartmentText(dept) {
+// Получение текста типа проекта
+function getProjectTypeText(projectType) {
     const texts = {
         'bots': 'Боты',
         'web': 'Веб',
@@ -163,18 +118,17 @@ function getDepartmentText(dept) {
         'infrastructure': 'Инфраструктура',
         'other': 'Другое'
     };
-    return texts[dept] || dept;
+    return texts[projectType] || projectType;
 }
 
 // Открытие модального окна для добавления/редактирования
 function openModal(project = null) {
     const modal = document.getElementById('edit-modal');
-    const form = document.getElementById('project-form');
     const title = document.getElementById('modal-title');
     const deleteBtn = document.getElementById('delete-project-btn');
     
     // Сброс формы
-    form.reset();
+    document.getElementById('project-form').reset();
     document.getElementById('timeline-items').innerHTML = '';
     
     if (project) {
@@ -188,7 +142,7 @@ function openModal(project = null) {
         document.getElementById('project-title').value = project.title;
         document.getElementById('project-description').value = project.description || '';
         document.getElementById('project-status').value = project.status;
-        document.getElementById('project-department').value = project.department;
+        document.getElementById('project-type').value = project.projectType;
         document.getElementById('project-next-step').value = project.nextStep;
         
         // Заполнение этапов
@@ -240,91 +194,13 @@ function addTimelineItem(item = null) {
     });
 }
 
-// Валидация формы
-function validateForm() {
-    const title = document.getElementById('project-title').value.trim();
-    const nextStep = document.getElementById('project-next-step').value.trim();
-    const timelineItems = document.querySelectorAll('.timeline-item');
-    
-    if (!title) {
-        showNotification('Поле "Название проекта" обязательно для заполнения', 'error');
-        return false;
-    }
-    
-    if (!nextStep) {
-        showNotification('Поле "Следующий шаг / Результат" обязательно для заполнения', 'error');
-        return false;
-    }
-    
-    // Проверяем хотя бы один этап
-    let hasValidTimeline = false;
-    for (let item of timelineItems) {
-        const date = item.querySelector('input[type="text"]:nth-of-type(1)').value.trim();
-        const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)').value.trim();
-        if (date && titleInput) {
-            hasValidTimeline = true;
-            break;
-        }
-    }
-    
-    if (!hasValidTimeline) {
-        showNotification('Добавьте хотя бы один этап проекта', 'error');
-        return false;
-    }
-    
-    return true;
-}
-
-// Сохранение проекта
-function saveProject() {
-    if (!validateForm()) {
-        return;
-    }
-    
+// Функция редактирования проекта (вызывается из обработчиков)
+function editProject(projectId) {
     const projects = loadProjects();
-    const projectId = document.getElementById('project-id').value ? 
-        parseInt(document.getElementById('project-id').value) : Date.now();
-    
-    // Сбор данных этапов
-    const timelineItems = [];
-    document.querySelectorAll('.timeline-item').forEach(item => {
-        const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
-        const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
-        const descriptionTextarea = item.querySelector('textarea');
-        
-        const date = dateInput?.value.trim() || '';
-        const title = titleInput?.value.trim() || '';
-        const description = descriptionTextarea?.value.trim() || '';
-        
-        if (date && title) {
-            timelineItems.push({ date, title, description });
-        }
-    });
-    
-    const project = {
-        id: projectId,
-        title: document.getElementById('project-title').value.trim(),
-        description: document.getElementById('project-description').value.trim(),
-        status: document.getElementById('project-status').value,
-        department: document.getElementById('project-department').value,
-        nextStep: document.getElementById('project-next-step').value.trim(),
-        timeline: timelineItems
-    };
-    
-    if (document.getElementById('project-id').value) {
-        // Обновление существующего проекта
-        const index = projects.findIndex(p => p.id === parseInt(document.getElementById('project-id').value));
-        if (index !== -1) {
-            projects[index] = project;
-        }
-    } else {
-        // Добавление нового проекта
-        projects.push(project);
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+        openModal(project);
     }
-    
-    saveProjects(projects);
-    renderProjectsList();
-    closeModal();
 }
 
 // Удаление проекта
@@ -426,19 +302,100 @@ function initSnowflakes() {
     });
 }
 
-// Функция редактирования проекта (вызывается из обработчиков)
-function editProject(projectId) {
-    const projects = loadProjects();
-    const project = projects.find(p => p.id === projectId);
-    if (project) {
-        openModal(project);
-    }
-}
-
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     // Инициализация снега
     initSnowflakes();
+    
+    // Обработка отправки формы (надежное решение)
+    document.getElementById('project-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Валидация
+        const title = document.getElementById('project-title').value.trim();
+        const nextStep = document.getElementById('project-next-step').value.trim();
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        
+        if (!title) {
+            showNotification('Поле "Название проекта" обязательно для заполнения', 'error');
+            return;
+        }
+        
+        if (!nextStep) {
+            showNotification('Поле "Следующий шаг / Результат" обязательно для заполнения', 'error');
+            return;
+        }
+        
+        let hasValidTimeline = false;
+        for (let item of timelineItems) {
+            const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
+            const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
+            
+            if (dateInput && titleInput) {
+                const date = dateInput.value.trim();
+                const titleVal = titleInput.value.trim();
+                if (date && titleVal) {
+                    hasValidTimeline = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!hasValidTimeline) {
+            showNotification('Добавьте хотя бы один этап проекта', 'error');
+            return;
+        }
+        
+        // Сохранение данных
+        const projects = loadProjects();
+        const projectIdInput = document.getElementById('project-id').value;
+        const projectId = projectIdInput ? parseInt(projectIdInput) : Date.now();
+        
+        const timelineItemsData = [];
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
+            const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
+            const descriptionTextarea = item.querySelector('textarea');
+            
+            if (dateInput && titleInput) {
+                const date = dateInput.value.trim();
+                const titleVal = titleInput.value.trim();
+                const description = descriptionTextarea ? descriptionTextarea.value.trim() : '';
+                
+                if (date && titleVal) {
+                    timelineItemsData.push({ date, title: titleVal, description });
+                }
+            }
+        });
+        
+        const project = {
+            id: projectId,
+            title: title,
+            description: document.getElementById('project-description').value.trim(),
+            status: document.getElementById('project-status').value,
+            projectType: document.getElementById('project-type').value,
+            nextStep: nextStep,
+            timeline: timelineItemsData
+        };
+        
+        if (projectIdInput) {
+            // Обновление существующего проекта
+            const index = projects.findIndex(p => p.id == projectId);
+            if (index !== -1) {
+                projects[index] = project;
+            } else {
+                // Если не найден, добавляем как новый
+                projects.push(project);
+            }
+        } else {
+            // Добавление нового проекта
+            projects.push(project);
+        }
+        
+        saveProjects(projects);
+        renderProjectsList();
+        closeModal();
+    });
     
     // Кнопки действий
     document.getElementById('add-project-btn').addEventListener('click', () => openModal());
@@ -461,12 +418,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('add-timeline-item').addEventListener('click', addTimelineItem);
-    
-    // Обработка отправки формы
-    document.getElementById('project-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveProject();
-    });
     
     // Загрузка начальных данных
     renderProjectsList();

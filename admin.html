@@ -76,10 +76,19 @@
 <form id="project-form">
     <input type="hidden" id="project-id">
     
-    <div class="form-group">
-        <label for="project-title">Название проекта *</label>
-        <input type="text" id="project-title" required placeholder="Введите название проекта">
-    </div>
+    <!-- Замените блок с отделом на тип проекта -->
+<div class="form-group">
+    <label for="project-type">Тип проекта *</label>
+    <select id="project-type" required>
+        <option value="bots">Боты</option>
+        <option value="web">Веб</option>
+        <option value="mobile">Мобильные</option>
+        <option value="archive">Архив</option>
+        <option value="education">Образование</option>
+        <option value="infrastructure">Инфраструктура</option>
+        <option value="other">Другое</option>
+    </select>
+</div>
     
     <div class="form-group">
         <label for="project-description">Описание</label>

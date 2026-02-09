@@ -527,3 +527,10 @@ header p {
         justify-content: center;
     }
 }
+/* Можно добавить эту строку для ясности */
+.form-group label[for="project-type"]::after {
+    content: " (ранее 'Отдел')";
+    color: var(--gray);
+    font-size: 12px;
+    margin-left: 5px;
+}
