@@ -7,14 +7,59 @@ function loadProjects() {
     return data ? JSON.parse(data) : [];
 }
 
-// Сохранение данных в localStorage
-function saveProjects(projects) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    // Сбрасываем флаг очистки, если есть данные
-    if (projects.length > 0) {
-        localStorage.removeItem('dashboard_cleared');
+// Сохранение проекта
+function saveProject() {
+    if (!validateForm()) {
+        return;
     }
-    showNotification('Данные успешно сохранены!', 'success');
+    
+    const projects = loadProjects();
+    const projectIdInput = document.getElementById('project-id').value;
+    const projectId = projectIdInput ? parseInt(projectIdInput) : Date.now();
+    
+    // Сбор данных этапов
+    const timelineItems = [];
+    document.querySelectorAll('.timeline-item').forEach(item => {
+        const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
+        const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
+        const descriptionTextarea = item.querySelector('textarea');
+        
+        const date = dateInput?.value.trim() || '';
+        const title = titleInput?.value.trim() || '';
+        const description = descriptionTextarea?.value.trim() || '';
+        
+        if (date && title) {
+            timelineItems.push({ date, title, description });
+        }
+    });
+    
+    const project = {
+        id: projectId,
+        title: document.getElementById('project-title').value.trim(),
+        description: document.getElementById('project-description').value.trim(),
+        status: document.getElementById('project-status').value,
+        department: document.getElementById('project-department').value,
+        nextStep: document.getElementById('project-next-step').value.trim(),
+        timeline: timelineItems
+    };
+    
+    if (projectIdInput) {
+        // Обновление существующего проекта
+        const index = projects.findIndex(p => p.id == projectId); // Используем == вместо ===
+        if (index !== -1) {
+            projects[index] = project;
+        } else {
+            // Если проект не найден, добавляем как новый
+            projects.push(project);
+        }
+    } else {
+        // Добавление нового проекта
+        projects.push(project);
+    }
+    
+    saveProjects(projects);
+    renderProjectsList();
+    closeModal();
 }
 
 // Отображение списка проектов с явной кнопкой редактирования
