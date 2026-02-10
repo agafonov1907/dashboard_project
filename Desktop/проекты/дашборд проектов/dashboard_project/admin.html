@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админка • Управление проектами</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Анимация снега -->
+    <div class="snowflakes" aria-hidden="true">
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❄</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❄</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❄</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❄</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❄</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❄</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1><i class="fas fa-tools"></i> Администрирование проектов</h1>
+                <p>Управление данными дашборда проектов</p>
+            </div>
+            <a href="index.html" class="back-to-main-btn">
+                <i class="fas fa-arrow-left"></i> На главную
+            </a>
+        </header>
+
+        <div class="actions">
+            <button id="add-project-btn" class="btn primary">
+                <i class="fas fa-plus"></i> Добавить проект
+            </button>
+            <button id="clear-all-btn" class="btn danger">
+                <i class="fas fa-trash"></i> Очистить все данные
+            </button>
+            <button id="export-btn" class="btn secondary">
+                <i class="fas fa-download"></i> Экспортировать данные
+            </button>
+            <button id="import-btn" class="btn secondary">
+                <i class="fas fa-upload"></i> Импортировать данные
+            </button>
+            <input type="file" id="file-input" accept=".json" style="display: none;">
+        </div>
+
+        <div class="projects-list" id="projects-list">
+            <!-- Проекты будут отображаться здесь -->
+        </div>
+
+        <!-- Модальное окно редактирования -->
+        <div class="modal" id="edit-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Добавить новый проект</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="project-form">
+                        <input type="hidden" id="project-id">
+                        
+                        <div class="form-group">
+                            <label for="project-title">Название проекта</label>
+                            <input type="text" id="project-title">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-description">Описание проекта</label>
+                            <textarea id="project-description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-section">Раздел проекта</label>
+                            <select id="project-section">
+                                <option value="bots">Боты</option>
+                                <option value="web">Веб</option>
+                                <option value="mobile">Мобильные</option>
+                                <option value="archive">Архив</option>
+                                <option value="education">Образование</option>
+                                <option value="infrastructure">Инфраструктура</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        
+                        <div class="timeline-section">
+                            <h3>Контрольные точки проекта</h3>
+                            <div id="timeline-items">
+                                <!-- Контрольные точки будут добавляться здесь -->
+                            </div>
+                            <button type="button" id="add-timeline-item" class="btn outline small">
+                                <i class="fas fa-plus"></i> Добавить контрольную точку
+                            </button>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" id="delete-project-btn" class="btn danger" style="display: none;">
+                                Удалить проект
+                            </button>
+                            <button type="submit" class="btn primary">Сохранить проект</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
