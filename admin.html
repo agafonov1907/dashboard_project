@@ -74,16 +74,19 @@
                     <form id="project-form">
                         <input type="hidden" id="project-id">
                         
-                        <!-- Добавлено обязательное поле Название проекта -->
                         <div class="form-group">
-                            <label for="project-title">Название проекта *</label>
-                            <input type="text" id="project-title" required placeholder="Введите название проекта">
+                            <label for="project-title">Название проекта</label>
+                            <input type="text" id="project-title">
                         </div>
                         
-                        <!-- Тип проекта -->
                         <div class="form-group">
-                            <label for="project-type">Тип проекта *</label>
-                            <select id="project-type" required>
+                            <label for="project-description">Описание проекта</label>
+                            <textarea id="project-description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-section">Раздел проекта</label>
+                            <select id="project-section">
                                 <option value="bots">Боты</option>
                                 <option value="web">Веб</option>
                                 <option value="mobile">Мобильные</option>
@@ -94,58 +97,16 @@
                             </select>
                         </div>
                         
-                        <!-- Описание -->
-                        <div class="form-group">
-                            <label for="project-description">Описание</label>
-                            <textarea id="project-description" rows="3" placeholder="Описание проекта (необязательно)"></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <!-- Статус -->
-                            <div class="form-group">
-                                <label for="project-status">Статус *</label>
-                                <select id="project-status" required>
-                                    <option value="active">В работе</option>
-                                    <option value="planning">Планируется</option>
-                                    <option value="completed">Завершено</option>
-                                    <option value="paused">Приостановлен</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Отдел (оставлен для совместимости с кодом JS) -->
-                            <div class="form-group">
-                                <label for="project-department">Отдел *</label>
-                                <select id="project-department" required>
-                                    <option value="bots">Боты</option>
-                                    <option value="web">Веб</option>
-                                    <option value="mobile">Мобильные</option>
-                                    <option value="archive">Архив</option>
-                                    <option value="education">Образование</option>
-                                    <option value="infrastructure">Инфраструктура</option>
-                                    <option value="other">Другое</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- Следующий шаг -->
-                        <div class="form-group">
-                            <label for="project-next-step">Следующий шаг / Результат *</label>
-                            <textarea id="project-next-step" rows="2" required placeholder="Что нужно сделать дальше или итоговый результат"></textarea>
-                        </div>
-                        
-                        <!-- Этапы проекта -->
                         <div class="timeline-section">
-                            <h3>Этапы проекта *</h3>
-                            <p style="color: var(--gray); font-size: 14px; margin-bottom: 15px;">Добавьте хотя бы один этап проекта</p>
+                            <h3>Контрольные точки проекта</h3>
                             <div id="timeline-items">
-                                <!-- Этапы будут добавляться здесь -->
+                                <!-- Контрольные точки будут добавляться здесь -->
                             </div>
                             <button type="button" id="add-timeline-item" class="btn outline small">
-                                <i class="fas fa-plus"></i> Добавить этап
+                                <i class="fas fa-plus"></i> Добавить контрольную точку
                             </button>
                         </div>
                         
-                        <!-- Кнопки модального окна -->
                         <div class="modal-footer">
                             <button type="button" id="delete-project-btn" class="btn danger" style="display: none;">
                                 Удалить проект
