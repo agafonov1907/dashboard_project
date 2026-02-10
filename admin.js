@@ -10,14 +10,13 @@ function loadProjects() {
 // Сохранение данных в localStorage
 function saveProjects(projects) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    // Сбрасываем флаг очистки, если есть данные
     if (projects.length > 0) {
         localStorage.removeItem('dashboard_cleared');
     }
     showNotification('Данные успешно сохранены!', 'success');
 }
 
-// Отображение списка проектов с явной кнопкой редактирования
+// Отображение списка проектов
 function renderProjectsList() {
     const container = document.getElementById('projects-list');
     const projects = loadProjects();
@@ -30,19 +29,17 @@ function renderProjectsList() {
     container.innerHTML = projects.map(project => `
         <div class="project-card">
             <div class="project-card-content" data-id="${project.id}">
-                <h3>${project.title}</h3>
+                <h3>${project.title || 'Без названия'}</h3>
                 <div class="meta">
-                    <span><i class="fas fa-${getStatusIcon(project.status)}"></i> ${getStatusText(project.status)}</span>
-                    <span><i class="fas fa-building"></i> ${getProjectTypeText(project.projectType)}</span>
+                    <span><i class="fas fa-folder"></i> ${getSectionText(project.section)}</span>
                 </div>
-                <div class="description">${project.description || ''}</div>
-                <div class="next-step"><strong>Следующий шаг:</strong> ${project.nextStep}</div>
+                <div class="description">${project.description || 'Описание отсутствует'}</div>
                 <div class="timeline-preview">
-                    <strong>Этапы (${project.timeline?.length || 0}):</strong>
-                    ${project.timeline?.slice(0, 2).map(item => 
-                        `<div class="timeline-item-preview">${item.date} - ${item.title}</div>`
-                    ).join('') || '<em>Нет этапов</em>'}
-                    ${project.timeline?.length > 2 ? `<div class="timeline-more">+${project.timeline.length - 2} еще</div>` : ''}
+                    <strong>Контрольные точки (${project.checkpoints?.length || 0}):</strong>
+                    ${project.checkpoints?.slice(0, 2).map(cp => 
+                        `<div class="timeline-item-preview">${cp.startDate || '—'} - ${cp.endDate || '—'}: ${cp.description || 'Без описания'}</div>`
+                    ).join('') || '<em>Нет контрольных точек</em>'}
+                    ${project.checkpoints?.length > 2 ? `<div class="timeline-more">+${project.checkpoints.length - 2} еще</div>` : ''}
                 </div>
             </div>
             <div class="project-card-actions">
@@ -56,7 +53,7 @@ function renderProjectsList() {
         </div>
     `).join('');
     
-    // Добавляем обработчики для кнопок редактирования
+    // Обработчики кнопок
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -65,7 +62,6 @@ function renderProjectsList() {
         });
     });
     
-    // Добавляем обработчики для кнопок удаления
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -76,7 +72,6 @@ function renderProjectsList() {
         });
     });
     
-    // Также сохраняем возможность клика по всей карточке
     document.querySelectorAll('.project-card-content').forEach(card => {
         card.addEventListener('click', () => {
             const projectId = parseInt(card.dataset.id);
@@ -85,30 +80,8 @@ function renderProjectsList() {
     });
 }
 
-// Получение текста статуса
-function getStatusText(status) {
-    const texts = {
-        'active': 'В работе',
-        'planning': 'Планируется',
-        'completed': 'Завершено',
-        'paused': 'Приостановлен'
-    };
-    return texts[status] || status;
-}
-
-// Получение иконки статуса
-function getStatusIcon(status) {
-    const icons = {
-        'active': 'play-circle',
-        'planning': 'clock',
-        'completed': 'check-circle',
-        'paused': 'pause-circle'
-    };
-    return icons[status] || 'question-circle';
-}
-
-// Получение текста типа проекта
-function getProjectTypeText(projectType) {
+// Получение текста раздела
+function getSectionText(section) {
     const texts = {
         'bots': 'Боты',
         'web': 'Веб',
@@ -118,83 +91,81 @@ function getProjectTypeText(projectType) {
         'infrastructure': 'Инфраструктура',
         'other': 'Другое'
     };
-    return texts[projectType] || projectType;
+    return texts[section] || section;
 }
 
-// Открытие модального окна для добавления/редактирования
+// Открытие модального окна
 function openModal(project = null) {
     const modal = document.getElementById('edit-modal');
     const title = document.getElementById('modal-title');
     const deleteBtn = document.getElementById('delete-project-btn');
     
-    // Сброс формы
     document.getElementById('project-form').reset();
     document.getElementById('timeline-items').innerHTML = '';
     
     if (project) {
-        // Режим редактирования
         title.textContent = 'Редактировать проект';
         deleteBtn.style.display = 'block';
         deleteBtn.onclick = () => deleteProject(project.id);
         
-        // Заполнение полей
         document.getElementById('project-id').value = project.id;
-        document.getElementById('project-title').value = project.title;
+        document.getElementById('project-title').value = project.title || '';
         document.getElementById('project-description').value = project.description || '';
-        document.getElementById('project-status').value = project.status;
-        document.getElementById('project-type').value = project.projectType;
-        document.getElementById('project-next-step').value = project.nextStep;
+        document.getElementById('project-section').value = project.section || 'other';
         
-        // Заполнение этапов
-        if (project.timeline && project.timeline.length > 0) {
-            project.timeline.forEach(item => addTimelineItem(item));
+        if (project.checkpoints && project.checkpoints.length > 0) {
+            project.checkpoints.forEach(cp => addTimelineItem(cp));
         } else {
-            addTimelineItem(); // Добавляем пустой этап если нет данных
+            addTimelineItem();
         }
     } else {
-        // Режим добавления
         title.textContent = 'Добавить новый проект';
         deleteBtn.style.display = 'none';
         document.getElementById('project-id').value = '';
-        addTimelineItem(); // Добавляем пустой этап по умолчанию
+        addTimelineItem();
     }
     
     modal.style.display = 'block';
 }
 
-// Добавление элемента этапа
-function addTimelineItem(item = null) {
+// Добавление контрольной точки
+function addTimelineItem(checkpoint = null) {
     const container = document.getElementById('timeline-items');
     const timelineId = Date.now() + Math.random();
     
     const timelineHtml = `
         <div class="timeline-item" data-id="${timelineId}">
             <button type="button" class="remove-timeline">×</button>
-            <div class="form-group">
-                <label>Дата *</label>
-                <input type="text" placeholder="09.02.2026" value="${item?.date || ''}" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Начало КТ</label>
+                    <input type="text" placeholder="02.02.2026" value="${checkpoint?.startDate || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Окончание КТ</label>
+                    <input type="text" placeholder="09.02.2026" value="${checkpoint?.endDate || ''}">
+                </div>
             </div>
             <div class="form-group">
-                <label>Название этапа *</label>
-                <input type="text" placeholder="Название этапа" value="${item?.title || ''}" required>
+                <label>Описание КТ</label>
+                <textarea placeholder="Описание контрольной точки" rows="2">${checkpoint?.description || ''}</textarea>
             </div>
             <div class="form-group">
-                <label>Описание</label>
-                <textarea placeholder="Описание этапа" rows="2">${item?.description || ''}</textarea>
+                <label>Цель результата</label>
+                <textarea placeholder="На что направлена контрольная точка" rows="2">${checkpoint?.goal || ''}</textarea>
             </div>
         </div>
     `;
     
     container.insertAdjacentHTML('beforeend', timelineHtml);
     
-    // Добавляем обработчик удаления
     const removeBtn = container.querySelector(`[data-id="${timelineId}"] .remove-timeline`);
     removeBtn.addEventListener('click', () => {
         container.querySelector(`[data-id="${timelineId}"]`).remove();
     });
 }
 
-// Функция редактирования проекта (вызывается из обработчиков)
+// Функция редактирования проекта
 function editProject(projectId) {
     const projects = loadProjects();
     const project = projects.find(p => p.id === projectId);
@@ -286,7 +257,6 @@ function initSnowflakes() {
     const snowflakes = document.querySelectorAll('.snowflake');
     
     snowflakes.forEach((flake, index) => {
-        // Случайные параметры для каждого снежинки
         const size = Math.random() * 1.5 + 0.5;
         const posX = Math.random() * 100;
         const duration = Math.random() * 15 + 10;
@@ -304,91 +274,44 @@ function initSnowflakes() {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация снега
     initSnowflakes();
     
-    // Обработка отправки формы (надежное решение)
+    // Обработка отправки формы (без валидации - все опционально)
     document.getElementById('project-form').addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Валидация
-        const title = document.getElementById('project-title').value.trim();
-        const nextStep = document.getElementById('project-next-step').value.trim();
-        const timelineItems = document.querySelectorAll('.timeline-item');
-        
-        if (!title) {
-            showNotification('Поле "Название проекта" обязательно для заполнения', 'error');
-            return;
-        }
-        
-        if (!nextStep) {
-            showNotification('Поле "Следующий шаг / Результат" обязательно для заполнения', 'error');
-            return;
-        }
-        
-        let hasValidTimeline = false;
-        for (let item of timelineItems) {
-            const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
-            const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
-            
-            if (dateInput && titleInput) {
-                const date = dateInput.value.trim();
-                const titleVal = titleInput.value.trim();
-                if (date && titleVal) {
-                    hasValidTimeline = true;
-                    break;
-                }
-            }
-        }
-        
-        if (!hasValidTimeline) {
-            showNotification('Добавьте хотя бы один этап проекта', 'error');
-            return;
-        }
-        
-        // Сохранение данных
         const projects = loadProjects();
         const projectIdInput = document.getElementById('project-id').value;
         const projectId = projectIdInput ? parseInt(projectIdInput) : Date.now();
         
-        const timelineItemsData = [];
+        // Сбор контрольных точек
+        const checkpoints = [];
         document.querySelectorAll('.timeline-item').forEach(item => {
-            const dateInput = item.querySelector('input[type="text"]:nth-of-type(1)');
-            const titleInput = item.querySelector('input[type="text"]:nth-of-type(2)');
-            const descriptionTextarea = item.querySelector('textarea');
+            const startDate = item.querySelector('.form-row .form-group:nth-child(1) input')?.value.trim() || '';
+            const endDate = item.querySelector('.form-row .form-group:nth-child(2) input')?.value.trim() || '';
+            const description = item.querySelector('textarea:nth-of-type(1)')?.value.trim() || '';
+            const goal = item.querySelector('textarea:nth-of-type(2)')?.value.trim() || '';
             
-            if (dateInput && titleInput) {
-                const date = dateInput.value.trim();
-                const titleVal = titleInput.value.trim();
-                const description = descriptionTextarea ? descriptionTextarea.value.trim() : '';
-                
-                if (date && titleVal) {
-                    timelineItemsData.push({ date, title: titleVal, description });
-                }
-            }
+            // Добавляем контрольную точку даже если некоторые поля пустые
+            checkpoints.push({ startDate, endDate, description, goal });
         });
         
         const project = {
             id: projectId,
-            title: title,
+            title: document.getElementById('project-title').value.trim(),
             description: document.getElementById('project-description').value.trim(),
-            status: document.getElementById('project-status').value,
-            projectType: document.getElementById('project-type').value,
-            nextStep: nextStep,
-            timeline: timelineItemsData
+            section: document.getElementById('project-section').value,
+            checkpoints: checkpoints
         };
         
         if (projectIdInput) {
-            // Обновление существующего проекта
             const index = projects.findIndex(p => p.id == projectId);
             if (index !== -1) {
                 projects[index] = project;
             } else {
-                // Если не найден, добавляем как новый
                 projects.push(project);
             }
         } else {
-            // Добавление нового проекта
             projects.push(project);
         }
         
@@ -407,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fileInput.addEventListener('change', (e) => {
         if (e.target.files[0]) {
             importData(e.target.files[0]);
-            e.target.value = ''; // Сброс для повторного выбора
+            e.target.value = '';
         }
     });
     
@@ -419,6 +342,5 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('add-timeline-item').addEventListener('click', addTimelineItem);
     
-    // Загрузка начальных данных
     renderProjectsList();
 });

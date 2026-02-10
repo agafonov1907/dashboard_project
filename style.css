@@ -780,3 +780,82 @@ header {
     color: var(--gray);
     font-style: italic;
 }
+/* Стили для контрольных точек */
+.timeline-date {
+    display: inline-block;
+    background: var(--primary-light);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Кнопки выполнено/не выполнено для контрольных точек */
+.timeline-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.timeline-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.timeline-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.timeline-btn.completed {
+    color: var(--success);
+    border-color: var(--success);
+}
+
+.timeline-btn.not-completed {
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.timeline-btn.completed:hover {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.timeline-btn.not-completed:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.timeline-btn.active.completed {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.timeline-btn.active.not-completed {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Сообщение когда контрольные точки не заданы */
+.timeline-item p {
+    color: var(--gray);
+    font-style: italic;
+}

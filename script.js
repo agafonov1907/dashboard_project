@@ -1,21 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация снега
     initSnowflakes();
-    
-    // Загрузка проектов
     loadProjects();
-    
-    // Настройка фильтров
     setupFilters();
-    
-    // Кнопка добавления проекта
     setupAddProject();
-    
-    // Обновление даты
     updateDateTime();
-    setInterval(updateDateTime, 60000); // Каждую минуту
+    setInterval(updateDateTime, 60000);
     
-    // Автоматическое обновление при возврате на вкладку
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
             loadProjects();
@@ -24,12 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Инициализация анимации снега
 function initSnowflakes() {
     const snowflakes = document.querySelectorAll('.snowflake');
     
     snowflakes.forEach((flake, index) => {
-        // Случайные параметры для каждого снежинки
         const size = Math.random() * 1.5 + 0.5;
         const posX = Math.random() * 100;
         const duration = Math.random() * 15 + 10;
@@ -45,7 +33,6 @@ function initSnowflakes() {
     });
 }
 
-// Загрузка данных из localStorage (основной дашборд)
 function getProjectsData() {
     const isCleared = localStorage.getItem('dashboard_cleared') === 'true';
     const data = localStorage.getItem('dashboard_projects');
@@ -57,7 +44,6 @@ function getProjectsData() {
     return data ? JSON.parse(data) : [];
 }
 
-// Загрузка проектов в DOM
 function loadProjects(projects = null) {
     const container = document.getElementById('projects-container');
     const projectsData = projects || getProjectsData();
@@ -65,7 +51,6 @@ function loadProjects(projects = null) {
     container.innerHTML = '';
     
     if (projectsData.length === 0) {
-        // Показываем сообщение, что проектов нет
         container.innerHTML = `
             <div class="no-projects-message">
                 <div style="text-align: center; padding: 60px; color: var(--gray);">
@@ -75,33 +60,33 @@ function loadProjects(projects = null) {
                 </div>
             </div>
         `;
-        // Обновляем статистику
         updateStats(0, 0, 0, 0);
         return;
     }
     
     projectsData.forEach(project => {
-        // Формируем этапы с кнопками выполнено/не выполнено
         let timelineHtml = '';
-        if (project.timeline && project.timeline.length > 0) {
-            // Сортируем этапы по дате (новые сверху)
-            const sortedTimeline = [...project.timeline].sort((a, b) => {
-                // Преобразуем даты ДД.ММ.ГГГГ в сравнимый формат
-                const dateA = a.date.split('.').reverse().join('-');
-                const dateB = b.date.split('.').reverse().join('-');
-                return new Date(dateB) - new Date(dateA); // Обратный порядок: новые сверху
+        if (project.checkpoints && project.checkpoints.length > 0) {
+            // Сортируем по дате начала (новые сверху)
+            const sortedCheckpoints = [...project.checkpoints].sort((a, b) => {
+                if (!a.startDate && !b.startDate) return 0;
+                if (!a.startDate) return 1;
+                if (!b.startDate) return -1;
+                const dateA = a.startDate.split('.').reverse().join('-');
+                const dateB = b.startDate.split('.').reverse().join('-');
+                return new Date(dateB) - new Date(dateA);
             });
             
-            timelineHtml = sortedTimeline.map(item => {
-                // Генерируем уникальный ID для кнопок
-                const itemId = `item_${project.id}_${item.date.replace(/\./g, '_')}_${item.title.replace(/\s+/g, '_')}`;
-                
+            timelineHtml = sortedCheckpoints.map(cp => {
+                const itemId = `cp_${project.id}_${Date.now()}_${Math.random()}`;
                 return `
                     <div class="timeline-item">
-                        <div class="timeline-date">${item.date}</div>
+                        <div class="timeline-date">
+                            ${cp.startDate || '—'} - ${cp.endDate || '—'}
+                        </div>
                         <div class="timeline-content">
-                            <h4>${item.title}</h4>
-                            <p>${item.description}</p>
+                            <h4>${cp.description || 'Контрольная точка без описания'}</h4>
+                            <p><strong>Цель:</strong> ${cp.goal || 'Цель не указана'}</p>
                             <div class="timeline-actions">
                                 <button class="timeline-btn completed" data-id="${itemId}" data-project="${project.id}" data-status="completed">
                                     <i class="fas fa-check"></i> Выполнено
@@ -115,59 +100,51 @@ function loadProjects(projects = null) {
                 `;
             }).join('');
         } else {
-            timelineHtml = '<div class="timeline-item"><div class="timeline-content"><p>Этапы не заданы</p></div></div>';
+            timelineHtml = '<div class="timeline-item"><div class="timeline-content"><p>Контрольные точки не заданы</p></div></div>';
         }
         
         const card = document.createElement('div');
-        card.className = `project-card status-${project.status}`;
+        card.className = `project-card status-active`;
         card.innerHTML = `
             <div class="project-header">
                 <div class="project-title">
-                    <h2>${project.title}</h2>
-                    <p>${project.description}</p>
+                    <h2>${project.title || 'Проект без названия'}</h2>
+                    <p>${project.description || 'Описание отсутствует'}</p>
                 </div>
-                <span class="status-badge status-${project.status}">
-                    ${getStatusText(project.status)}
+                <span class="status-badge status-active">
+                    ${getSectionText(project.section)}
                 </span>
             </div>
             <div class="timeline">
                 ${timelineHtml}
             </div>
-            <div class="next-step">
-                <h4><i class="fas fa-arrow-right"></i> ${project.status === 'completed' ? 'Результат' : 'Следующий шаг'}</h4>
-                <p>${project.nextStep}</p>
-            </div>
         `;
         container.appendChild(card);
     });
     
-    // Добавляем обработчики для кнопок выполнено/не выполнено
     addTimelineButtonHandlers();
-    
-    // Обновляем статистику
     updateStats(
         projectsData.length,
-        projectsData.filter(p => p.status === 'active').length,
-        projectsData.filter(p => p.status === 'planning').length,
-        projectsData.filter(p => p.status === 'completed').length
+        projectsData.length, // Все проекты считаются "в работе"
+        0,
+        0
     );
-    
-    // Анимация появления карточек
     animateCards();
 }
 
-// Получение текста статуса
-function getStatusText(status) {
+function getSectionText(section) {
     const texts = {
-        'active': 'В работе',
-        'planning': 'Планируется',
-        'completed': 'Завершено',
-        'paused': 'Приостановлен'
+        'bots': 'Боты',
+        'web': 'Веб',
+        'mobile': 'Мобильные',
+        'archive': 'Архив',
+        'education': 'Образование',
+        'infrastructure': 'Инфраструктура',
+        'other': 'Другое'
     };
-    return texts[status] || 'Неизвестно';
+    return texts[section] || section;
 }
 
-// Добавление обработчиков для кнопок этапов
 function addTimelineButtonHandlers() {
     document.querySelectorAll('.timeline-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -175,42 +152,29 @@ function addTimelineButtonHandlers() {
             const itemId = this.dataset.id;
             const status = this.dataset.status;
             
-            // Загружаем текущие данные
-            const projects = getProjectsData();
-            const project = projects.find(p => p.id == projectId);
+            const statusKey = `timeline_status_${itemId}`;
+            localStorage.setItem(statusKey, status);
             
-            if (project && project.timeline) {
-                // Находим соответствующий этап и сохраняем его статус
-                // Для простоты сохраним статус в localStorage отдельно
-                const statusKey = `timeline_status_${itemId}`;
-                localStorage.setItem(statusKey, status);
-                
-                // Обновляем визуальное состояние кнопок
-                const itemContainer = this.closest('.timeline-item');
-                const completedBtn = itemContainer.querySelector('.timeline-btn.completed');
-                const notCompletedBtn = itemContainer.querySelector('.timeline-btn.not-completed');
-                
-                // Сбрасываем все состояния
-                completedBtn.classList.remove('active');
-                notCompletedBtn.classList.remove('active');
-                
-                // Устанавливаем активное состояние
-                if (status === 'completed') {
-                    completedBtn.classList.add('active');
-                } else {
-                    notCompletedBtn.classList.add('active');
-                }
-                
-                showNotification(status === 'completed' ? 'Этап отмечен как выполненный' : 'Этап отмечен как не выполненный', 'success');
+            const itemContainer = this.closest('.timeline-item');
+            const completedBtn = itemContainer.querySelector('.timeline-btn.completed');
+            const notCompletedBtn = itemContainer.querySelector('.timeline-btn.not-completed');
+            
+            completedBtn.classList.remove('active');
+            notCompletedBtn.classList.remove('active');
+            
+            if (status === 'completed') {
+                completedBtn.classList.add('active');
+            } else {
+                notCompletedBtn.classList.add('active');
             }
+            
+            showNotification(status === 'completed' ? 'Контрольная точка отмечена как выполненная' : 'Контрольная точка отмечена как не выполненная', 'success');
         });
     });
     
-    // Восстанавливаем сохранённые состояния при загрузке
     restoreTimelineStatuses();
 }
 
-// Восстановление состояний кнопок из localStorage
 function restoreTimelineStatuses() {
     document.querySelectorAll('.timeline-item').forEach(item => {
         const completedBtn = item.querySelector('.timeline-btn.completed');
@@ -230,56 +194,40 @@ function restoreTimelineStatuses() {
     });
 }
 
-// Настройка фильтров
 function setupFilters() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Активируем кнопку в своей группе
             const group = this.parentElement;
             group.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             this.classList.add('active');
             
-            // Применяем фильтрацию
             applyFilters();
-            
-            // Показываем уведомление
             showNotification(`Фильтр применен: ${this.textContent}`, 'success');
         });
     });
 }
 
-// Применение фильтров
 function applyFilters() {
-    const statusFilter = document.querySelector('.filter-btn[data-filter="all"]')?.classList.contains('active') ? 'all' : 
-                         document.querySelector('.filter-btn[data-filter="active"]')?.classList.contains('active') ? 'active' :
-                         document.querySelector('.filter-btn[data-filter="planning"]')?.classList.contains('active') ? 'planning' :
-                         document.querySelector('.filter-btn[data-filter="completed"]')?.classList.contains('active') ? 'completed' : 'all';
-    
-    const deptFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : 
-                       document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
-                       document.querySelector('.filter-btn[data-filter="web"]')?.classList.contains('active') ? 'web' :
-                       document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' :
-                       document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' : 'all';
+    const sectionFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : 
+                         document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
+                         document.querySelector('.filter-btn[data-filter="web"]')?.classList.contains('active') ? 'web' :
+                         document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' :
+                         document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' : 'all';
     
     const allProjects = getProjectsData();
     let filtered = allProjects;
     
-    if (statusFilter !== 'all') {
-        filtered = filtered.filter(p => p.status === statusFilter);
-    }
-    
-    if (deptFilter !== 'all') {
-        filtered = filtered.filter(p => p.department === deptFilter);
+    if (sectionFilter !== 'all') {
+        filtered = filtered.filter(p => p.section === sectionFilter);
     }
     
     loadProjects(filtered);
 }
 
-// Обновление статистики
 function updateStats(total, active, planning, completed) {
     const statCards = document.querySelectorAll('.stat-card .stat-info p');
     if (statCards.length >= 4) {
@@ -290,30 +238,19 @@ function updateStats(total, active, planning, completed) {
     }
 }
 
-// Настройка кнопки добавления проекта
 function setupAddProject() {
     const btn = document.getElementById('add-project-btn');
     if (btn) {
         btn.addEventListener('click', function() {
             showNotification('Перейдите в админку для добавления проектов', 'warning');
-            // Можно также перенаправлять в админку:
-            // window.location.href = 'admin.html';
         });
     }
 }
 
-// Обновление даты и времени
 function updateDateTime() {
     const now = new Date();
-    const dateOptions = { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit'
-    };
-    const timeOptions = { 
-        hour: '2-digit', 
-        minute: '2-digit'
-    };
+    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
     
     const formattedDate = now.toLocaleDateString('ru-RU', dateOptions).replace(/\./g, '.');
     const formattedTime = now.toLocaleTimeString('ru-RU', timeOptions);
@@ -325,7 +262,6 @@ function updateDateTime() {
     if (timeElement) timeElement.textContent = `Последнее обновление: ${formattedTime}`;
 }
 
-// Анимация появления карточек
 function animateCards() {
     const cards = document.querySelectorAll('.project-card');
     cards.forEach((card, index) => {
@@ -339,9 +275,7 @@ function animateCards() {
     });
 }
 
-// Показ уведомления
 function showNotification(message, type = 'info') {
-    // Удаляем старые уведомления
     const existing = document.querySelector('.notification');
     if (existing) existing.remove();
     
