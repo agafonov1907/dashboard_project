@@ -83,14 +83,14 @@ function renderProjectsList() {
 // Получение текста раздела
 function getSectionText(section) {
     const texts = {
-        'bots': 'Боты',
-        'web': 'Веб',
-        'mobile': 'Мобильные',
-        'archive': 'Архив',
-        'education': 'Образование',
-        'infrastructure': 'Инфраструктура',
-        'other': 'Другое'
-    };
+    'archive': 'Архив',
+    'education': 'Образование',
+    'other': 'Другое',
+    'bots': 'Сервисы MAX: Чат-боты',
+    'yandex': 'Яндекс.Проекты',
+    'rgis': 'РГИС ЖКХ',
+    'tor': 'ТОР'
+};
     return texts[section] || section;
 }
 

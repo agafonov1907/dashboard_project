@@ -213,10 +213,12 @@ function setupFilters() {
 
 function applyFilters() {
     const sectionFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : 
-                         document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
-                         document.querySelector('.filter-btn[data-filter="web"]')?.classList.contains('active') ? 'web' :
-                         document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' :
-                         document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' : 'all';
+                         document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' :
+                   document.querySelector('.filter-btn[data-filter="education"]')?.classList.contains('active') ? 'education' :
+                   document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
+                   document.querySelector('.filter-btn[data-filter="yandex"]')?.classList.contains('active') ? 'yandex' :
+                   document.querySelector('.filter-btn[data-filter="rgis"]')?.classList.contains('active') ? 'rgis' :
+                   document.querySelector('.filter-btn[data-filter="tor"]')?.classList.contains('active') ? 'tor' : 'all';
     
     const allProjects = getProjectsData();
     let filtered = allProjects;
