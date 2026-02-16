@@ -79,8 +79,20 @@ function loadProjects(projects = null) {
             
             timelineHtml = sortedCheckpoints.map(cp => {
                 const itemId = `cp_${project.id}_${Date.now()}_${Math.random()}`;
+                // Получаем сохраненный статус
+                const statusKey = `timeline_status_${itemId}`;
+                const savedStatus = localStorage.getItem(statusKey);
+                
+                // Определяем класс для окрашивания
+                let statusClass = '';
+                if (savedStatus === 'completed') {
+                    statusClass = 'completed';
+                } else if (savedStatus === 'not-completed') {
+                    statusClass = 'not-completed';
+                }
+                
                 return `
-                    <div class="timeline-item">
+                    <div class="timeline-item ${statusClass}">
                         <div class="timeline-date">
                             ${cp.startDate || '—'} - ${cp.endDate || '—'}
                         </div>
@@ -111,9 +123,14 @@ function loadProjects(projects = null) {
                     <h2>${project.title || 'Проект без названия'}</h2>
                     <p>${project.description || 'Описание отсутствует'}</p>
                 </div>
-                <span class="status-badge status-active">
-                    ${getSectionText(project.section)}
-                </span>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span class="status-badge status-active">
+                        ${getSectionText(project.section)}
+                    </span>
+                    <button class="btn secondary small export-btn" data-project-id="${project.id}" style="padding: 8px 16px; font-size: 14px; min-width: auto;">
+                        <i class="fas fa-file-export"></i> Экспорт
+                    </button>
+                </div>
             </div>
             <div class="timeline">
                 ${timelineHtml}
@@ -122,10 +139,18 @@ function loadProjects(projects = null) {
         container.appendChild(card);
     });
     
+    // Добавляем обработчики для кнопок экспорта
+    document.querySelectorAll('.export-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const projectId = parseInt(this.dataset.projectId);
+            exportProjectReport(projectId);
+        });
+    });
+    
     addTimelineButtonHandlers();
     updateStats(
         projectsData.length,
-        projectsData.length, // Все проекты считаются "в работе"
+        projectsData.length,
         0,
         0
     );
@@ -213,12 +238,10 @@ function setupFilters() {
 
 function applyFilters() {
     const sectionFilter = document.querySelector('.filter-btn[data-filter="all-dept"]')?.classList.contains('active') ? 'all' : 
-                         document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' :
-                   document.querySelector('.filter-btn[data-filter="education"]')?.classList.contains('active') ? 'education' :
-                   document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
-                   document.querySelector('.filter-btn[data-filter="yandex"]')?.classList.contains('active') ? 'yandex' :
-                   document.querySelector('.filter-btn[data-filter="rgis"]')?.classList.contains('active') ? 'rgis' :
-                   document.querySelector('.filter-btn[data-filter="tor"]')?.classList.contains('active') ? 'tor' : 'all';
+                         document.querySelector('.filter-btn[data-filter="bots"]')?.classList.contains('active') ? 'bots' :
+                         document.querySelector('.filter-btn[data-filter="web"]')?.classList.contains('active') ? 'web' :
+                         document.querySelector('.filter-btn[data-filter="mobile"]')?.classList.contains('active') ? 'mobile' :
+                         document.querySelector('.filter-btn[data-filter="archive"]')?.classList.contains('active') ? 'archive' : 'all';
     
     const allProjects = getProjectsData();
     let filtered = allProjects;
@@ -275,6 +298,114 @@ function animateCards() {
             card.style.transform = 'translateY(0)';
         }, 300 + index * 100);
     });
+}
+
+// Генерация HTML-отчета по проекту
+function exportProjectReport(projectId) {
+    const projects = getProjectsData();
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+        showNotification('Проект не найден', 'error');
+        return;
+    }
+    
+    // Собираем данные для отчета
+    let reportContent = `
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Отчет по проекту: ${project.title || 'Без названия'}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; background: #f8fafc; }
+                .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                h1 { color: #2c5282; margin-bottom: 20px; }
+                .project-info { background: #f1f5f9; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+                .checkpoint { margin-bottom: 25px; padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6; }
+                .checkpoint.completed { background: #f0fdf4; border-left-color: #10b981; }
+                .checkpoint.not-completed { background: #fef2f2; border-left-color: #ef4444; }
+                .checkpoint-date { background: #3b82f6; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
+                .checkpoint-date.completed { background: #10b981; }
+                .checkpoint-date.not-completed { background: #ef4444; }
+                .checkpoint-title { font-size: 18px; font-weight: bold; color: #1e293b; margin: 10px 0; }
+                .checkpoint-goal { background: #e2e8f0; padding: 15px; border-radius: 8px; margin-top: 10px; }
+                .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; background: #2c5282; }
+                .completed-badge { background: #10b981; }
+                .not-completed-badge { background: #ef4444; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>📋 Отчет по проекту</h1>
+                
+                <div class="project-info">
+                    <h2>${project.title || 'Проект без названия'}</h2>
+                    <p><strong>Раздел:</strong> <span class="status-badge">${getSectionText(project.section)}</span></p>
+                    <p><strong>Описание:</strong> ${project.description || 'Описание отсутствует'}</p>
+                    <p><strong>Дата формирования отчета:</strong> ${new Date().toLocaleDateString('ru-RU')}</p>
+                </div>
+                
+                <h2>🎯 Контрольные точки (${project.checkpoints?.length || 0})</h2>
+    `;
+    
+    if (project.checkpoints && project.checkpoints.length > 0) {
+        project.checkpoints.forEach(cp => {
+            // Создаем временный ID для поиска статуса
+            const tempCheckpointId = `cp_${projectId}_`;
+            let foundStatus = '';
+            
+            // Ищем соответствующий статус в localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('timeline_status_cp_') && key.includes(tempCheckpointId)) {
+                    const storedStatus = localStorage.getItem(key);
+                    if (storedStatus) {
+                        foundStatus = storedStatus;
+                        break;
+                    }
+                }
+            }
+            
+            const statusClass = foundStatus === 'completed' ? 'completed' : 
+                              foundStatus === 'not-completed' ? 'not-completed' : '';
+            const statusBadgeClass = foundStatus === 'completed' ? 'completed-badge' : 
+                                   foundStatus === 'not-completed' ? 'not-completed-badge' : '';
+            const statusText = foundStatus === 'completed' ? 'Выполнено' : 
+                             foundStatus === 'not-completed' ? 'Не выполнено' : 'Не указано';
+            
+            reportContent += `
+                <div class="checkpoint ${statusClass}">
+                    <div class="checkpoint-date ${statusClass}">${cp.startDate || '—'} - ${cp.endDate || '—'}</div>
+                    <div class="checkpoint-title">${cp.description || 'Контрольная точка без описания'}</div>
+                    <p>${cp.goal ? `<strong>Цель:</strong> ${cp.goal}` : 'Цель не указана'}</p>
+                    <div class="checkpoint-goal">
+                        <strong>Статус:</strong> <span class="status-badge ${statusBadgeClass}">${statusText}</span>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        reportContent += '<p>Контрольные точки не заданы</p>';
+    }
+    
+    reportContent += `
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Создаем и скачиваем файл
+    const blob = new Blob([reportContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Отчет_по_проекту_${project.title || 'без_названия'}.html`;
+    link.click();
+    
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    showNotification('HTML-отчет успешно сгенерирован и скачан!', 'success');
 }
 
 function showNotification(message, type = 'info') {

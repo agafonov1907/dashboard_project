@@ -859,3 +859,39 @@ header {
     color: var(--gray);
     font-style: italic;
 }
+/* Окрашивание мероприятий */
+.timeline-item.completed {
+    background: rgba(16, 185, 129, 0.1) !important;
+    border-left: 4px solid var(--success) !important;
+}
+
+.timeline-item.not-completed {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-left: 4px solid var(--danger) !important;
+}
+
+.timeline-item.completed .timeline-date {
+    background: var(--success) !important;
+}
+
+.timeline-item.not-completed .timeline-date {
+    background: var(--danger) !important;
+}
+
+/* Кнопка экспорта */
+.btn.secondary.small {
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary-light);
+    padding: 8px 16px;
+    font-size: 14px;
+    min-width: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn.secondary.small:hover {
+    background: var(--primary-light);
+    color: white;
+}
